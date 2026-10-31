@@ -1,0 +1,66 @@
+{
+  "skill_name": "t3-parallel-dispatch",
+  "evals": [
+    {
+      "id": 1,
+      "name": "frontier-askui-and-briefs",
+      "prompt": "Dry run only — do NOT call delegate_task / spawn real children. You are coordinating the Acme monorepo. Candidate tasks:\n- ACME-39 Domain+Convex plans (folders: packages/backend) blockedBy: none\n- ACME-40 OpenRouter runtime (folders: agent/) blockedBy: none\n- ACME-41 Enforce quotas (folders: agent/, packages/backend) blockedBy: ACME-39, ACME-40\nUser said: launch what we can in parallel with worktrees, be cheap on models.\n1) You MUST call the native ask tool (AskUserQuestion / AskQuestion / ask_user) with a multi-select over task ids; in a dry run, show the exact tool call JSON. If the tool is missing, say so and use muelle presets or a numbered list — never a '- [ ]' checklist and never only analysis prose.\n2) Assume the human replies: ACME-39 ACME-40, frontier_only, one_pr_per_child.\n3) Outline research notes paths, write two child briefs, pick provider/model tiers, and show the exact parallel dispatch plan (isolation/worktree, roles).\nSave your full answer markdown to the outputs directory as plan.md.",
+      "expected_output": "Attempted ask UI (or documented missing tool + fallback), then after assumed ACME-39/40 selection: two worktree briefs, ACME-41 not started, economy model tiers, no overlapping owners.",
+      "files": [],
+      "expectations": [
+        "Calls (or, in a dry run, shows the exact call to) the native ask tool with a multi-select over task ids, in the same turn as the summary",
+        "Chat text before the ask is at most ~5 lines; no table or analysis dump in the bubble",
+        "Contains no markdown checkbox list ('- [ ]', '[ ]', '☐') for the human to pick from",
+        "When there are more than 4 candidates and the tool caps options, splits across questions or uses presets instead of falling back to markdown",
+        "If no ask tool exists: names the tools it tried and falls back to a numbered list, not fake checkboxes",
+        "Plans isolation:worktree for parallel repo edits when dispatching is allowed",
+        "Chooses cheaper tiers for mechanical/research vs strong for protocol when models are discussed",
+        "Does not plan unsafe parallel edits on the same owned paths",
+        "Dry-run: does not claim real children/PRs were launched",
+        "Does not start tasks still blocked by unfinished dependencies",
+        "If canRunChildTask is false, stops fan-out and offers a truthful fallback"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "overlap-serialize",
+      "prompt": "Dry run only — do NOT spawn children. Two selected tasks both own packages/agent-protocol:\n- T1 add token.usage field docs\n- T2 change TurnRequest schema\nUser wants both in parallel worktrees. Follow best orchestration practice and produce plan.md explaining whether you parallelize or serialize, and show the ask-UI (or documented fallback) you would use for confirmation. Save to outputs/plan.md.",
+      "expected_output": "Refuses unsafe parallel edit of same package or serializes/splits with clear ownership; shows ask UI / fallback for confirmation.",
+      "files": [],
+      "expectations": [
+        "Calls (or, in a dry run, shows the exact call to) the native ask tool with a multi-select over task ids, in the same turn as the summary",
+        "Chat text before the ask is at most ~5 lines; no table or analysis dump in the bubble",
+        "Contains no markdown checkbox list ('- [ ]', '[ ]', '☐') for the human to pick from",
+        "When there are more than 4 candidates and the tool caps options, splits across questions or uses presets instead of falling back to markdown",
+        "If no ask tool exists: names the tools it tried and falls back to a numbered list, not fake checkboxes",
+        "Plans isolation:worktree for parallel repo edits when dispatching is allowed",
+        "Chooses cheaper tiers for mechanical/research vs strong for protocol when models are discussed",
+        "Does not plan unsafe parallel edits on the same owned paths",
+        "Dry-run: does not claim real children/PRs were launched",
+        "Does not start tasks still blocked by unfinished dependencies",
+        "If canRunChildTask is false, stops fan-out and offers a truthful fallback"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "no-child-provider",
+      "prompt": "Dry run. orchestrator_capabilities reports the only enabled provider has canRunChildTask:false. User asks to fan out 4 Linear issues on worktrees. Produce plan.md with what you tell the user, the ask/confirm step, and what fallback you offer. Save to outputs/plan.md.",
+      "expected_output": "Stops parallel dispatch, explains limitation, offers serial-in-thread fallback — does not pretend worktrees launched; still uses ask UI or documents missing tool.",
+      "files": [],
+      "expectations": [
+        "Calls (or, in a dry run, shows the exact call to) the native ask tool with a multi-select over task ids, in the same turn as the summary",
+        "Chat text before the ask is at most ~5 lines; no table or analysis dump in the bubble",
+        "Contains no markdown checkbox list ('- [ ]', '[ ]', '☐') for the human to pick from",
+        "When there are more than 4 candidates and the tool caps options, splits across questions or uses presets instead of falling back to markdown",
+        "If no ask tool exists: names the tools it tried and falls back to a numbered list, not fake checkboxes",
+        "Plans isolation:worktree for parallel repo edits when dispatching is allowed",
+        "Chooses cheaper tiers for mechanical/research vs strong for protocol when models are discussed",
+        "Does not plan unsafe parallel edits on the same owned paths",
+        "Dry-run: does not claim real children/PRs were launched",
+        "Does not start tasks still blocked by unfinished dependencies",
+        "If canRunChildTask is false, stops fan-out and offers a truthful fallback"
+      ]
+    }
+  ],
+  "note": "Evals run as dry runs that write plan.md, so they cannot see real tool calls. Grade from the transcript/tool trace when possible; iteration-1 passed a plain checklist and hid the bug."
+}
