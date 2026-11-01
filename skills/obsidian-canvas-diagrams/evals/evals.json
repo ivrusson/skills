@@ -1,0 +1,29 @@
+{
+  "skill_name": "obsidian-canvas-diagrams",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Planifica con canvases de Obsidian cómo añadir pagos con tarjeta a este proyecto. Quiero un plan visual: cómo encaja en la arquitectura, el flujo de un pago con sus fallos y las fases de trabajo. Ponlo en la carpeta del proyecto en el vault.",
+      "expected_output": "Several linked canvases (overview with changed parts highlighted, payment flow with failure branches, plan board) plus a hub note; labeled edges, legend, no overlaps, Spanish titles.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Dibújame en un canvas de Obsidian cómo funciona el registro de usuarios en este repo, desde el formulario hasta que llega el email de confirmación.",
+      "expected_output": "A flow canvas (swimlane) with the real actors from the code, numbered steps, labeled arrows, failure branches, legend.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "hazme un esquema en obsidian (canvas) de la arquitectura de este proyecto: qué piezas hay, dónde corren y quién habla con quién",
+      "expected_output": "An overview canvas (grid) grouped by deployment boundary, every box named with its technology and responsibility, labeled arrows, legend.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Hazme en Obsidian un diagrama de cómo se comunican por API el frontend, el backend y los servicios externos cuando un usuario inicia sesión: qué llamadas hay, qué devuelve cada una y qué pasa si algo falla.",
+      "expected_output": "A sequence canvas with numbered calls labeled with the real endpoint or function, explicit replies and failure answers; Spanish titles and labels.",
+      "files": []
+    }
+  ]
+}
