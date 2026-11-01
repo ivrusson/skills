@@ -417,6 +417,30 @@ npx skills add ~/.agents/skills/<skill-name> -g -y -a claude-code -a cursor -a c
 
 It is safe to run on the canonical folder (it does not copy it onto itself) and idempotent. Use `-a '*'` to cover every agent the CLI knows. For skills published on GitHub, `npx skills add owner/repo` does the same. Check with `npx skills ls -g`, tell the user which agents got it, and remind them each needs a new session. Keep eval workspaces in `~/.agents/skill-workspaces/`, never inside `~/.agents/skills/` (a `skill-snapshot/SKILL.md` there can load as a duplicate skill).
 
+### Make the skill harness-neutral
+
+Installing the skill everywhere is not enough if its body only works in one harness. While writing:
+
+- Refer to MCP tools by their base name and say a harness may prefix it (e.g. `obsidian_write_note`, seen
+  in Claude Code as `mcp__obsidian__obsidian_write_note`). Don't hard-code one harness's tool names or
+  slash commands; when one matters (`/mcp` to reconnect), name the harness.
+- Locate bundled files relative to the skill's own directory. Never use a path from one harness's
+  install location.
+- Prefer Python standard library or POSIX shell scripts. Each extra runtime is something every person
+  must install.
+- **If the skill depends on outside setup** (an app, a plugin, an MCP server, an API key), ship a
+  `scripts/doctor.py`:
+  - **A read-only checklist**: what is missing, what works, and numbered next steps. It never prints a
+    secret.
+  - **Opt-in fix subcommands**, which back up every file they change.
+  - **Per-harness MCP config writers.** Each harness uses its own file and format: Claude Code
+    `~/.claude.json`, Cursor `~/.cursor/mcp.json`, Codex `~/.codex/config.toml` (TOML), OpenCode
+    `~/.config/opencode/opencode.json` (`mcp`, `environment`), Gemini CLI `~/.gemini/settings.json`.
+  - A step 0 in SKILL.md: run the doctor, and ask the user before applying its fixes.
+  - **A fallback path** for when the outside setup is missing, if one exists.
+
+  `obsidian-canvas-diagrams/scripts/doctor.py` is a working example.
+
 ### Package and Present (only if `present_files` tool is available)
 
 Check whether you have access to the `present_files` tool. If you don't, skip this step. If you do, package the skill and present the .skill file to the user:

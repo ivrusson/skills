@@ -29,6 +29,8 @@ from pathlib import Path
 
 # Files to exclude from output listings
 METADATA_FILES = {"transcript.md", "user_notes.md", "metrics.json"}
+# Subfolders of outputs/ that hold working files, not results
+OUTPUT_SKIP_DIRS = {"scratch", "tmp", "node_modules", ".git", "__pycache__"}
 
 # Extensions we render as inline text
 TEXT_EXTENSIONS = {
@@ -70,7 +72,8 @@ def _find_runs_recursive(root: Path, current: Path, runs: list[dict]) -> None:
         return
 
     outputs_dir = current / "outputs"
-    if outputs_dir.is_dir():
+    # An empty outputs/ (e.g. left over before runs moved into run-N/) must not hide the runs below it.
+    if outputs_dir.is_dir() and any(f.is_file() for f in outputs_dir.rglob("*")):
         run = build_run(root, current)
         if run:
             runs.append(run)
@@ -88,7 +91,9 @@ def build_run(root: Path, run_dir: Path) -> dict | None:
     eval_id = None
 
     # Try eval_metadata.json
-    for candidate in [run_dir / "eval_metadata.json", run_dir.parent / "eval_metadata.json"]:
+    # eval_metadata.json lives in the eval dir: run_dir itself, or above <config>/ or <config>/run-N/
+    for candidate in [run_dir / "eval_metadata.json", run_dir.parent / "eval_metadata.json",
+                      run_dir.parent.parent / "eval_metadata.json"]:
         if candidate.exists():
             try:
                 metadata = json.loads(candidate.read_text())
@@ -122,9 +127,17 @@ def build_run(root: Path, run_dir: Path) -> dict | None:
     outputs_dir = run_dir / "outputs"
     output_files: list[dict] = []
     if outputs_dir.is_dir():
-        for f in sorted(outputs_dir.iterdir()):
-            if f.is_file() and f.name not in METADATA_FILES:
-                output_files.append(embed_file(f))
+        # Walk subfolders too (e.g. outputs/preview/*.png), skipping working dirs; images first so a
+        # reviewer sees the visual result before the raw files.
+        found = []
+        for f in sorted(outputs_dir.rglob("*")):
+            rel = f.relative_to(outputs_dir)
+            if f.is_file() and f.name not in METADATA_FILES and not (set(rel.parts[:-1]) & OUTPUT_SKIP_DIRS):
+                found.append((f.suffix.lower() not in IMAGE_EXTENSIONS, len(rel.parts) > 1, str(rel), f))
+        for _, _, rel, f in sorted(found):
+            entry = embed_file(f)
+            entry["name"] = rel
+            output_files.append(entry)
 
     # Load grading if present
     grading = None
